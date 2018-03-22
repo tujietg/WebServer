@@ -2,8 +2,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+
 /**
- * @author sunboteng
+ * @author Sun Boteng
  */
 public class Requset {
 	private Socket connection = null;

@@ -10,10 +10,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- * @author sunboteng
+ * @author Sun Boteng
  */
 public class Method {
 	public static void dirfile(PrintStream printStrem, String path) {
+		Response response = new Response();
+		Method method = new Method();
 		File file = new File(path);
 		String[] s = file.list();
 		printStrem.print("HTTP/1.1 200 OK" + "\r\n" + "Content-Type:text/html"
@@ -21,7 +23,8 @@ public class Method {
 		printStrem.println();
 		String[] str = path.split(":");
 		int i = 0;
-		if (s != null) {
+		if (s != null && s.length != 0) {
+
 			for (i = 0; i < s.length; i++) {
 				printStrem.println("<HTML>");
 				if (path.endsWith(":/")) {
@@ -43,6 +46,8 @@ public class Method {
 				}
 				printStrem.println("</HTML>");
 			}
+		} else {
+			method.respomseNullFile(printStrem, path, method);
 		}
 		printStrem.flush();
 		printStrem.close();
@@ -59,7 +64,9 @@ public class Method {
 			return "image/jpeg";
 		} else if (path.endsWith(".mp3")) {
 			return "audio/mpeg";
-		} else {
+		} else if (path.endsWith(".class"))
+			return "application/octet-stream";
+		else {
 			return "text/plain";
 		}
 
@@ -69,7 +76,7 @@ public class Method {
 		if (path.endsWith(".html") || path.endsWith(".htm")
 				|| path.endsWith(".txt") || path.endsWith(".java")
 				|| path.endsWith(".gif") || path.endsWith(".jpg")
-				|| path.endsWith(".jpeg") || path.endsWith(".mp3")) {
+				|| path.endsWith(".jpeg") || path.endsWith(".mp3")||path.endsWith(".class")) {
 			return true;
 		} else {
 			return false;
@@ -89,38 +96,29 @@ public class Method {
 			return null;
 		}
 		String[] parts = str.split("=");
-		System.out.println(parts[0]);
-		System.out.println(parts[1]);
 		String[] bytes = parts[1].split("-");
 		if (parts[1].endsWith("-")) {
 			berange[0] = Integer.parseInt(bytes[0]);
-			System.out.println("begin1: " + berange[0]);
 			berange[1] = size - 1;
-			System.out.println("end1: " + berange[1]);
 		} else {
 			// bytes=-500 最后500个字节
 			if (bytes[0] == null || bytes[0].equals("")) {
-				berange[0] = size - Integer.parseInt(bytes[1]) - 1;
-				System.out.println("begin2: " + berange[0]);
+				berange[0] = size - Integer.parseInt(bytes[1]);
 				berange[1] = size - 1;
-				System.out.println("end2: " + berange[1]);
 			} else {
 				berange[0] = Integer.parseInt(bytes[0]);
-				System.out.println("begin2: " + berange[0]);
 				berange[1] = Integer.parseInt(bytes[1]);
-				System.out.println("end2: " + berange[1]);
 			}
 		}
 		return berange;
 	}
 
-	public static void sendRangeFile(OutputStream out , RandomAccessFile re,
+	public static void sendRangeFile(OutputStream out, RandomAccessFile re,
 			int begin, int end, int length) throws IOException {
 		re.seek(begin);
 		byte[] buffer = new byte[length];
 		re.read(buffer);
 		out.write(buffer);
-		out.close();
 	}
 
 	public static void sendFile(InputStream in, OutputStream out) {
@@ -132,5 +130,11 @@ public class Method {
 		} catch (IOException e) {
 			System.out.println(e);
 		}
+	}
+
+	public static void respomseNullFile(PrintStream printStrem, String path,
+			Method method) {
+		printStrem.println();
+		printStrem.println("<h4> 此文件夾为空，请返回上层目录。 </h4>");
 	}
 }

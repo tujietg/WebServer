@@ -1,10 +1,18 @@
 import java.io.PrintStream;
 import java.util.Date;
+
 /**
- * @author sunboteng
+ * @author Sun Boteng
  */
 public class Response {
-
+	 
+	 public static void responseHtml(PrintStream printStrem, String path,
+				Method method) {
+			printStrem.print("HTTP/1.1 200 OK\r\n" + "Content-Type: "
+					+ method.guessContentType(path) + "\r\n" + "Date: "
+					+ new Date() + "\r\n" + "Server: HTTPServer 1.0\r\n\r\n");
+		}
+	 
 	public static void responseRange(PrintStream printStrem, String path,
 			Method method, int begin, int end, int length) {
 		printStrem.print("HTTP/1.1 206 Partial Content\r\n" + "Content-Type: "
@@ -14,12 +22,16 @@ public class Response {
 				+ "Server: HTTPServer 1.0\r\n\r\n");
 	}
 
-	public static void responseHtml(PrintStream printStrem, String path,
+	// 416 Range Not Satisfiable
+	public static void errorResponseRange(PrintStream printStrem, String path,
 			Method method) {
-		printStrem.print("HTTP/1.1 200 OK\r\n" + "Content-Type: "
-				+ method.guessContentType(path) + "\r\n" + "Date: "
-				+ new Date() + "\r\n" + "Server: HTTPServer 1.0\r\n\r\n");
+		printStrem.print("HTTP/1.1 416 Range Not Satisfiable\r\n"
+				+ "Content-Type: " + method.guessContentType(path) + "\r\n"
+				+ "Date: " + new Date() + "\r\n"
+				+ "Server: HTTPServer 1.0\r\n\r\n");
 	}
+
+	
 
 	public static void errorResponse(PrintStream printStrem, String path,
 			Method method) {
@@ -27,6 +39,6 @@ public class Response {
 				+ method.guessContentType(path) + "\r\n" + "Date: "
 				+ new Date() + "\r\n" + "Server: HTTPServer 1.0\r\n\r\n");
 		printStrem.println();
-		printStrem.println("<h1> 404 not found </h1>");
+		printStrem.println("404 not found ");
 	}
 }

@@ -4,16 +4,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- * @author sunboteng
+ * @author Sun Boteng
  */
 public class HttpServerImpl {
-	private final static int S_PORT = 9911;
+	private final static int S_PORT = 9991;
 	private static String wwwhome = "F:";
 
 	public static void main(String[] args) throws IOException {
-		Method method = new Method();
-		Requset requset = new Requset();
-		Response response = new Response();
+
 		ServerSocket serverSocket = null;
 		try {
 			serverSocket = new ServerSocket(S_PORT);
@@ -21,10 +19,10 @@ public class HttpServerImpl {
 			System.out.println("服务器无法启动" + e);
 			System.exit(-1);
 		}
+		System.out.println("服务器启动.......");
 		while (true) {
 			Socket connection = serverSocket.accept();
-			ServerThread serverThread = new ServerThread(connection, method,
-					requset, response, wwwhome);
+			ServerThread serverThread = new ServerThread(connection, wwwhome);
 			serverThread.start();
 		}
 	}

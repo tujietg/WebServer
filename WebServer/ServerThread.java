@@ -12,6 +12,9 @@ import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.util.ArrayList;
 
+/**
+ * @author Sun Boteng
+ */
 class ServerThread extends Thread {
 	private Socket connection = null;
 	private BufferedReader in = null;
@@ -26,19 +29,17 @@ class ServerThread extends Thread {
 	private String url = null;
 	private ArrayList<Socket> list = null;
 
-	public ServerThread(Socket connection, Method method, Requset requset,
-			Response response, String wwwhome) {
+	public ServerThread(Socket connection, String wwwhome) {
 		this.connection = connection;
-		this.method = method;
-		this.requset = requset;
-		this.response = response;
 		this.wwwhome = wwwhome;
-
+		Requset requset = new Requset();
+		Method method = new Method();
+		Response response = new Response();
 		try {
+
 			in = new BufferedReader(new InputStreamReader(
 					connection.getInputStream()));
-			OutputStream outputStream = connection.getOutputStream();
-			out = new BufferedOutputStream(outputStream);
+			out = new BufferedOutputStream(connection.getOutputStream());
 			printStrem = new PrintStream(out);
 			requsetMethod = requset.getmethod(connection, in);
 			url = requsetMethod[1];
@@ -46,14 +47,12 @@ class ServerThread extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public void run() {
 		// 解决/favicon.ico所带来的影响
 		if (!url.contains("/favicon.ico")) {
-			String path = wwwhome + url;
-			System.out.println(path);
+			String path = String.format("%s%s", wwwhome, url);
 			if (requsetMethod[0].equals("GET")) {
 				if (!(method.isfile(path))) {
 					method.dirfile(printStrem, path);
@@ -65,27 +64,32 @@ class ServerThread extends Thread {
 					}
 					int i = requset.getIndex(allRequset);
 					if (i != -1) {
-						int len = method.sumFile(path);
+						int size = method.sumFile(path);
 						int[] rangeSize = method.range(allRequset[i], path);
 						int begin = rangeSize[0];
 						int end = rangeSize[1];
 						int length = end - begin + 1;
 						File f = new File(path);
-						InputStream file;
+						InputStream file = null;
 						try {
 							file = new FileInputStream(f);
-							response.responseRange(printStrem, path, method,
-									begin, end, length);
+							if (end > size || length > size) {
+								response.errorResponseRange(printStrem, path,
+										method);
+							} else {
+								response.responseRange(printStrem, path,
+										method, begin, end, length);
+							}
 							try {
 								RandomAccessFile re = new RandomAccessFile(f,
 										"r");
-								method.sendRangeFile(out,re, begin, end,
+								method.sendRangeFile(out, re, begin, end,
 										length);
 							} catch (IOException e) {
-								e.printStackTrace();
+								System.err.println(e);
 							}
 						} catch (FileNotFoundException e) {
-							e.printStackTrace();
+							System.err.println(e);
 						}
 					} else {
 						try {
@@ -107,7 +111,6 @@ class ServerThread extends Thread {
 				e1.printStackTrace();
 			}
 			try {
-
 				if (connection != null) {
 					connection.close();
 				}
